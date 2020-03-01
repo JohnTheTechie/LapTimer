@@ -14,7 +14,7 @@ public class TimerPersistanceContainer {
 
     private TimerPersistanceContainer() {
         timerBoxes = new ArrayList<>();
-        Log.v(LOG_TAG, "TimerPersistanceContainer created");
+        Log.v(LOG_TAG, "TimerPersistanceContainer | created");
     }
 
     @NonNull
@@ -28,7 +28,7 @@ public class TimerPersistanceContainer {
     }
 
     public int getSize(){
-        Log.v(LOG_TAG,"size requested : size ="+timerBoxes.size());
+        Log.v(LOG_TAG,"TimerPersistanceContainer | size requested : size ="+timerBoxes.size());
         return timerBoxes.size();
     }
 
@@ -69,18 +69,19 @@ public class TimerPersistanceContainer {
     }
 
     public void prepareDummyData(){
-        Log.v(LOG_TAG,"dummy data prepared");
+        Log.v(LOG_TAG,"TimerPersistanceContainer | dummy data prepared");
         if(timerBoxes.size() == 0){
             TimerBox box = new TimerBox();
             box.setName("dummy");
             box.setTimerList(ClockTimerList.prepareDummyList());
             this.insertTimerBox(box);
         }
-        Log.v(LOG_TAG,"updated size of the container : "+this.timerBoxes.size());
+        Log.v(LOG_TAG,"TimerPersistanceContainer | updated size of the container : "+this.timerBoxes.size());
     }
 
     private void insert(TimerBox box){
         this.timerBoxes.add(box);
+        Log.v(LOG_TAG,"TimerPersistenceContainer | box inserted | new size : "+getSize());
     }
 
     private int indexOf(TimerBox box_ut){

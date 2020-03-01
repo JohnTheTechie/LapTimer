@@ -133,11 +133,13 @@ public class ModifierActivity extends AppCompatActivity {
                 is encapsulated into TimerBox and pushed into PersistenceContainer
                  */
                 if((!name_label.getText().toString().equals(getString(R.string.filler_edit_text))) && (timerBox.getTimerCount()>0)){
+                    String name = name_label.getText().toString();
+                    int repetition = Integer.parseInt(repetition_counter.getText().toString());
                     Intent resultIntent = new Intent(ModifierActivity.this, MainActivity.class);
-                    timerBox.setName(name_label.getText().toString());
-                    timerBox.setRepetitions(Integer.parseInt(repetition_counter.getText().toString()));
+                    timerBox.setName(name);
+                    timerBox.setRepetitions(repetition);
                     timerPersistanceContainer.insertTimerBox(timerBox);
-                    setResult(RESULT_OK);
+                    setResult(RESULT_OK, resultIntent);
                     finish();
                 }
                 return true;

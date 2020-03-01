@@ -1,6 +1,7 @@
 package johnfatso.laptimer;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
@@ -26,6 +27,10 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
+    //definition of request codes
+    final int REQUEST_CREATE_NEW_TIMERBOX = 0x01;
+    final int REQUEST_MODIFY_TIMERBOX = 0x02;
+
      Toolbar toolbar;
 
      RecyclerView recyclerView;
@@ -39,7 +44,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         timerPersistanceContainer = TimerPersistanceContainer.getContainer();
-        timerPersistanceContainer.prepareDummyData();
 
         recyclerView = findViewById(R.id.list_container_main);
 
@@ -65,9 +69,9 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()){
             case R.id.addition_main:
+                //if adddition pressed, modifier activity called for results
                 Intent intent = new Intent(this, ModifierActivity.class);
-                startActivity(intent);
-
+                startActivityForResult(intent, REQUEST_CREATE_NEW_TIMERBOX);
                 return true;
 
             case R.id.delete_main:
@@ -79,6 +83,27 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Dispatch incoming result to the correct fragment.
+     *
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        if(requestCode == REQUEST_CREATE_NEW_TIMERBOX){
+            if(resultCode == RESULT_OK){
+                adapter.notifyDataSetChanged();
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    /**
+     * function to trigger intent to start timer activity
+     * @param nameOfTheList name of the timer as reference
+     */
     void triggerTimer(String nameOfTheList){
         Intent intent=new Intent(this, ClockActivity.class);
         intent.putExtra("timerlist", nameOfTheList );
@@ -91,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
 
         public TimerMainListAdapter(ArrayList<TimerBox> list) {
             this.list = list;
-            Log.v("Timer", "list container received | size : "+list.size());
+            Log.v("Timer", "MainActivity | list container received | size : "+list.size());
         }
 
         public class CustomViewHolder extends RecyclerView.ViewHolder{
@@ -136,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
             int roundsCount = list.get(position).getRepetitions();
             int timerCount = list.get(position).getTimerList().size();
             long durationCount = list.get(position).getTotalDurationOfSingleCycle();
-            Log.v("Timer", "box received for position : "+position
+            Log.v("Timer", "MainActivity | box received for position : "+position
                     +" | name: "+name+" | rounds: "+roundsCount+" | timers: "
                     +timerCount+" | duration: "+durationCount);
             holder.roundsCounter.setText(roundsCount+"");
