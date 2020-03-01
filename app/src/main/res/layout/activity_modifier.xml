@@ -20,7 +20,7 @@
         app:titleTextColor="#ffffff"
         android:elevation="4dp"
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
-        app:layout_constraintBottom_toTopOf="modifier_edit_name"
+        app:layout_constraintBottom_toTopOf="@+id/modifier_edit_name"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
@@ -38,7 +38,7 @@
         android:textSize="10pt"
         android:textColor="@color/white_text"
         android:inputType="text"
-        android:text="Dummy Name"
+        android:text="@string/filler_edit_text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/modifier_actionbar" />
@@ -51,16 +51,16 @@
         android:layout_marginTop="20dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="20dp"
-        android:text="TextView"
+        android:text="@string/repetition_counter_label"
         android:textColor="@color/dim_white_text"
         android:textSize="10pt"
         app:layout_constraintBottom_toTopOf="@+id/divider"
-        app:layout_constraintEnd_toStartOf="@+id/editText2"
+        app:layout_constraintEnd_toStartOf="@+id/repetition_counter_modifier"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/modifier_edit_name" />
 
     <EditText
-        android:id="@+id/editText2"
+        android:id="@+id/repetition_counter_modifier"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -78,9 +78,9 @@
         android:layout_width="395dp"
         android:layout_height="470dp"
         android:layout_marginStart="4dp"
-        android:layout_marginTop="29dp"
         android:layout_marginEnd="4dp"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/divider"
         tools:listitem="@layout/main_list" />
@@ -96,7 +96,7 @@
         android:foregroundTint="@color/white_text"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editText2"
+        app:layout_constraintTop_toBottomOf="@+id/repetition_counter_modifier"
         app:layout_constraintBottom_toTopOf="@id/timer_modifier_list"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

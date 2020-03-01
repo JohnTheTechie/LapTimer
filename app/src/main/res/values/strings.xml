@@ -21,4 +21,8 @@
     <string name="save">Save</string>
     <string name="delete">Delete</string>
     <string name="add">Add</string>
+
+    <!-- modifier activity-->
+    <string name="filler_edit_text">Give a name!</string>
+    <string name="repetition_counter_label">Repetitions</string>
 </resources>
