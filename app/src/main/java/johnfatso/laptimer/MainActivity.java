@@ -27,6 +27,9 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
+    //string identifiers
+    final static String CLOCK_TO_START = "timer_to_start";
+
     //definition of request codes
     final int REQUEST_CREATE_NEW_TIMERBOX = 0x01;
     final int REQUEST_MODIFY_TIMERBOX = 0x02;
@@ -106,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
      */
     void triggerTimer(String nameOfTheList){
         Intent intent=new Intent(this, ClockActivity.class);
-        intent.putExtra("timerlist", nameOfTheList );
+        intent.putExtra(CLOCK_TO_START, nameOfTheList );
         startActivity(intent);
     }
 

@@ -10,6 +10,7 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -41,6 +42,16 @@ public class ClockActivity extends AppCompatActivity {
 
         createAndStartService();
         bindToTheService();
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if(keyCode == KeyEvent.KEYCODE_BACK){
+            if(status != StatusClockActivity.COMPLETED) {
+                service.clock_control_input(ClockControlCommand.STOP);
+            }
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     public void setMain_timer(String timer){
@@ -79,6 +90,10 @@ public class ClockActivity extends AppCompatActivity {
                 break;
 
             case REINITIALIZED:
+                control_button.setImageDrawable(getDrawable(android.R.drawable.ic_media_play));
+                break;
+
+            case COMPLETED:
                 control_button.setImageDrawable(getDrawable(android.R.drawable.ic_media_play));
                 break;
         }
@@ -153,7 +168,7 @@ public class ClockActivity extends AppCompatActivity {
 
     private void createAndStartService(){
         serviceIntent = new Intent(this, ClockService.class);
-        serviceIntent.putExtra(ClockService.CLOCK_TIMER_LIST, (ClockTimerList) getIntent().getParcelableExtra("timerlist"));
+        serviceIntent.putExtra(ClockService.CLOCK_TIMER_LIST, getIntent().getStringExtra(MainActivity.CLOCK_TO_START));
         startService(serviceIntent);
     }
 

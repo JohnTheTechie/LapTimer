@@ -6,7 +6,8 @@ public enum StatusClockService {
     RUNNING_ACTIVITY_DISCONNECTED,
     PAUSED_ACTIVITY_ATTACHED,
     PAUSED_ACTIVITY_DETACHED,
-    COMPLETED;
+    COMPLETED,
+    DESTROYED;
 
     StatusClockService(){
 

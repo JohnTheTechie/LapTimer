@@ -14,6 +14,7 @@ public class TimerPersistanceContainer {
 
     private TimerPersistanceContainer() {
         timerBoxes = new ArrayList<>();
+        this.prepareDummyData();
         Log.v(LOG_TAG, "TimerPersistanceContainer | created");
     }
 

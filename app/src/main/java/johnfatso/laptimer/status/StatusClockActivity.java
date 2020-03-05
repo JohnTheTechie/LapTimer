@@ -4,5 +4,6 @@ public enum StatusClockActivity {
     IDLE,
     RUNNING,
     PAUSED,
+    COMPLETED,
     REINITIALIZED,
 }
