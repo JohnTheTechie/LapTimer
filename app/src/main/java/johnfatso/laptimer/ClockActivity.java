@@ -1,6 +1,6 @@
 package johnfatso.laptimer;
 
-import androidx.appcompat.app.ActionBar;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.ComponentName;
@@ -14,6 +14,9 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
+
+import java.util.Objects;
+
 import johnfatso.laptimer.status.StatusClockActivity;
 
 public class ClockActivity extends AppCompatActivity {
@@ -26,21 +29,34 @@ public class ClockActivity extends AppCompatActivity {
 
     private StatusClockActivity status;
 
-    private ActionBar actionBar;
-
     private ClockService service;
     private Intent serviceIntent;
+
+    final String MAIN_CLOCK = "main_clock";
+    final String NEXT_CLOCK = "next_clock";
+    final String PREV_COUNTER = "prev_counter";
+    final String NEXT_COUNTER = "next_counter";
+    final static public String STATUS = "status";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_clock);
-
+        status = StatusClockActivity.IDLE;
         prepareHmiElements();
         setDefaultValuesToTextHmiElements();
-        status = StatusClockActivity.IDLE;
+        if(savedInstanceState!=null){
+            main_timer.setText(savedInstanceState.getString(MAIN_CLOCK));
+            next_timer.setText(savedInstanceState.getString(NEXT_CLOCK));
+            prev_counter.setText(savedInstanceState.getString(PREV_COUNTER));
+            next_counter.setText(savedInstanceState.getString(NEXT_COUNTER));
+            setStatus((StatusClockActivity) Objects.requireNonNull(savedInstanceState.getSerializable(STATUS)));
+        }
 
-        createAndStartService();
+        createServiceIntent();
+        if(status == StatusClockActivity.IDLE || status == StatusClockActivity.COMPLETED || status == StatusClockActivity.REINITIALIZED)  {
+            startService(serviceIntent);
+        }
         bindToTheService();
     }
 
@@ -78,23 +94,14 @@ public class ClockActivity extends AppCompatActivity {
     public void setStatus(StatusClockActivity newStatus){
         switch (newStatus){
             case IDLE:
-                control_button.setImageDrawable(getDrawable(android.R.drawable.ic_media_play));
-                break;
-
             case PAUSED:
-                control_button.setImageDrawable(getDrawable(android.R.drawable.ic_media_play));
+            case REINITIALIZED:
+            case COMPLETED:
+                setControl_button(android.R.drawable.ic_media_play);
                 break;
 
             case RUNNING:
-                control_button.setImageDrawable(getDrawable(android.R.drawable.ic_media_pause));
-                break;
-
-            case REINITIALIZED:
-                control_button.setImageDrawable(getDrawable(android.R.drawable.ic_media_play));
-                break;
-
-            case COMPLETED:
-                control_button.setImageDrawable(getDrawable(android.R.drawable.ic_media_play));
+                setControl_button(android.R.drawable.ic_media_pause);
                 break;
         }
         this.status = newStatus;
@@ -105,6 +112,7 @@ public class ClockActivity extends AppCompatActivity {
         @Override
         public void onServiceConnected(ComponentName className,
                                        IBinder service) {
+            Log.v(LOG_TAG, ClockActivity.this.getLocalClassName()+" | ServiceConnected");
             // We've bound to LocalService, cast the IBinder and get LocalService instance
             ClockService.ClockBinder binder = (ClockService.ClockBinder) service;
             ClockActivity.this.service = binder.getService();
@@ -113,7 +121,7 @@ public class ClockActivity extends AppCompatActivity {
 
         @Override
         public void onServiceDisconnected(ComponentName arg0) {
-
+            Log.v(LOG_TAG, ClockActivity.this.getLocalClassName()+" | SeriveDisconnected");
         }
     };
 
@@ -126,10 +134,20 @@ public class ClockActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         unbindService(connection);
-        service.stopService(serviceIntent);
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString(MAIN_CLOCK, main_timer.getText().toString());
+        outState.putString(NEXT_CLOCK, next_timer.getText().toString());
+        outState.putString(PREV_COUNTER, prev_counter.getText().toString());
+        outState.putString(NEXT_COUNTER, next_counter.getText().toString());
+        outState.putSerializable(STATUS, status);
     }
 
     private void prepareHmiElements(){
+        Log.v(LOG_TAG, this.getLocalClassName()+" | Prepare HMI elements called");
         main_timer = findViewById(R.id.clock_main_timer);
         next_timer = findViewById(R.id.clock_next_timer_clock);
 
@@ -144,6 +162,7 @@ public class ClockActivity extends AppCompatActivity {
                     case IDLE:
                     case REINITIALIZED:
                     case PAUSED:
+                    case COMPLETED:
                         ClockActivity.this.service.clock_control_input(ClockControlCommand.START);
                         break;
 
@@ -153,7 +172,7 @@ public class ClockActivity extends AppCompatActivity {
             }
         });
 
-        actionBar = getSupportActionBar();
+        //actionBar = getSupportActionBar();
     }
 
     private void setDefaultValuesToTextHmiElements(){
@@ -166,13 +185,22 @@ public class ClockActivity extends AppCompatActivity {
         control_button.setImageDrawable(getDrawable(android.R.drawable.ic_media_play));
     }
 
-    private void createAndStartService(){
+    private void createServiceIntent(){
+        Log.v(LOG_TAG, this.getLocalClassName()+" | service called");
         serviceIntent = new Intent(this, ClockService.class);
         serviceIntent.putExtra(ClockService.CLOCK_TIMER_LIST, getIntent().getStringExtra(MainActivity.CLOCK_TO_START));
-        startService(serviceIntent);
+        serviceIntent.putExtra(STATUS, status);
     }
 
     private void bindToTheService(){
-        bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE);
+        Log.v(LOG_TAG, this.getLocalClassName()+" | bind service called");
+        serviceIntent.putExtra(STATUS, status);
+        if(status != StatusClockActivity.RUNNING && status != StatusClockActivity.PAUSED){
+            bindService(serviceIntent, connection, Context.BIND_AUTO_CREATE);
+        }
+        else {
+            bindService(serviceIntent, connection, 0);
+        }
+
     }
 }
