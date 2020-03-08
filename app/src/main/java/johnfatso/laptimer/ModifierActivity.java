@@ -30,16 +30,29 @@ public class ModifierActivity extends AppCompatActivity {
 
     final String LOG_TAG = "MODIFIER";
 
+    final static int NEW_TIMER = 0x01;
+    final static int MODIFY_TIMER = 0x02;
+    //final static int CONFIG_CHANGE = 0x03;
+
+    final static String REQUEST_IDSTRING = "request_type";
+    final static String BOX_IDSTRING = "box_string";
+    //final static String NAME_IDSTRING = "name_string";
+    //final static String COUNT_IDSTRING = "count_String";
+
     //Dialog for adding timer item
     Dialog timePickerDialog;
     private NumberPicker minutesPicker, secondsPicker;
 
     Toolbar actionBar;
 
+    //flags
+    boolean timerElementEditFlag;
+
+    //HMI elements
     EditText name_label;
     EditText repetition_counter;
     ConstraintLayout container;
-    MenuItem deleteButton;
+    MenuItem deleteButton, editButton, addButton, saveButton;
 
     //object to store the values selected by the user
     TimerBox timerBox;
@@ -54,17 +67,6 @@ public class ModifierActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_modifier);
-
-        timerBox = new TimerBox();
-        timePickerDialog = new Dialog(ModifierActivity.this);
-        prepareDialog();
-
-        recyclerView = findViewById(R.id.timer_modifier_list);
-        layoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(layoutManager);
-
-        adapter = new TimerModifierListAdapter();
-        recyclerView.setAdapter(adapter);
 
         name_label = findViewById(R.id.modifier_edit_name);
         name_label.setOnFocusChangeListener(new View.OnFocusChangeListener() {
@@ -87,6 +89,30 @@ public class ModifierActivity extends AppCompatActivity {
             }
         });
 
+        actionBar = findViewById(R.id.modifier_actionbar);
+        setSupportActionBar(actionBar);
+
+        timerPersistanceContainer = TimerPersistanceContainer.getContainer();
+
+        Intent receivedIntent = getIntent();
+        int request_type = receivedIntent.getIntExtra(REQUEST_IDSTRING, 0);
+
+        switch (request_type){
+            case 0:
+                throw new IllegalStateException("illegal request type specified by requesting main activity");
+
+            case NEW_TIMER:
+                timerBox = new TimerBox();
+                setTitle(R.string.title_new_timer_definition);
+                break;
+
+            case MODIFY_TIMER:
+                timerBox = timerPersistanceContainer.getTimerBox(receivedIntent.getStringExtra(BOX_IDSTRING));
+                name_label.setText(timerBox.getName());
+                repetition_counter.setText(String.format(Integer.toString(timerBox.getRepetitions())));
+                setTitle(R.string.title_modification);
+        }
+
         container = findViewById(R.id.modifier_container);
         container.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -95,10 +121,15 @@ public class ModifierActivity extends AppCompatActivity {
             }
         });
 
-        timerPersistanceContainer = TimerPersistanceContainer.getContainer();
+        timePickerDialog = new Dialog(ModifierActivity.this);
+        prepareDialog();
 
-        actionBar = findViewById(R.id.modifier_actionbar);
-        setSupportActionBar(actionBar);
+        recyclerView = findViewById(R.id.timer_modifier_list);
+        layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+
+        adapter = new TimerModifierListAdapter(timerBox.getTimerList());
+        recyclerView.setAdapter(adapter);
 
         Log.v(LOG_TAG, "modifier | activity started");
 
@@ -109,6 +140,9 @@ public class ModifierActivity extends AppCompatActivity {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.modifier_actionbar, menu);
         deleteButton = menu.findItem(R.id.delete_modifier);
+        editButton = menu.findItem(R.id.edit_modifier);
+        saveButton = menu.findItem(R.id.save_modifier);
+        addButton = menu.findItem(R.id.addition_modifier);
 
         return true;
     }
@@ -118,12 +152,13 @@ public class ModifierActivity extends AppCompatActivity {
         switch (item.getItemId()){
             case R.id.addition_modifier:
                 this.checkAndResetSelection();
+                timerElementEditFlag = false;
                 timePickerDialog.show();
                 return true;
 
             case R.id.delete_modifier:
-                this.checkAndResetSelection();
                 adapter.deleteSelectedContents();
+                this.checkAndResetSelection();
                 return true;
 
             case R.id.save_modifier:
@@ -132,16 +167,24 @@ public class ModifierActivity extends AppCompatActivity {
                 if name has been given and at least a single timer has been added, the response
                 is encapsulated into TimerBox and pushed into PersistenceContainer
                  */
-                if((!name_label.getText().toString().equals(getString(R.string.filler_edit_text))) && (timerBox.getTimerCount()>0)){
+                if((!name_label.getText().toString().equals(getString(R.string.filler_edit_text))) && (adapter.getList().size()>0)){
+                    Toast.makeText(this, "save triggered", Toast.LENGTH_SHORT).show();
                     String name = name_label.getText().toString();
                     int repetition = Integer.parseInt(repetition_counter.getText().toString());
                     Intent resultIntent = new Intent(ModifierActivity.this, MainActivity.class);
                     timerBox.setName(name);
                     timerBox.setRepetitions(repetition);
+                    timerBox.setTimerList(adapter.getList());
                     timerPersistanceContainer.insertTimerBox(timerBox);
                     setResult(RESULT_OK, resultIntent);
                     finish();
-                }
+                }else
+                Toast.makeText(this, "save missed", Toast.LENGTH_SHORT).show();
+                return true;
+
+            case R.id.edit_modifier:
+                timerElementEditFlag = true;
+                timePickerDialog.show();
                 return true;
 
             default:
@@ -164,6 +207,8 @@ public class ModifierActivity extends AppCompatActivity {
         secondsPicker.setMaxValue(59);
         secondsPicker.setMinValue(0);
 
+        timerElementEditFlag =false;
+
         minutesPicker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
             @Override
             public void onValueChange(NumberPicker numberPicker, int i, int i1) {
@@ -182,11 +227,18 @@ public class ModifierActivity extends AppCompatActivity {
         affirmativeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                int timerValue = minutesPicker.getValue()*60+secondsPicker.getValue();
+                long timerValue = minutesPicker.getValue()*60+secondsPicker.getValue();
                 // the dialog should be closed only if the timer value is set to non-zero. else press cancel
                 if(timerValue != 0){
-                    timerBox.addTimer(timerValue);
+                    if(timerElementEditFlag) {
+                        adapter.editTimerAtSelectedPosition(timerValue);
+                    }
+                    else {
+                        adapter.getList().add(timerValue);
+                    }
                     adapter.notifyDataSetChanged();
+                    timerElementEditFlag = false;
+                    checkAndResetSelection();
                     timePickerDialog.dismiss();
                 }
                 else {
@@ -212,7 +264,7 @@ public class ModifierActivity extends AppCompatActivity {
         //check if any items selected in the list and resets them
         if(adapter.isItemsSelected){
             adapter.clearSelection();
-            changeDeleteButtonVisibility();
+            changeMenuButtonsVisibility();
         }
         //if name label is focused, the focus is removed
         if(name_label.getText().toString().length() == 0){
@@ -233,13 +285,62 @@ public class ModifierActivity extends AppCompatActivity {
      * else displayed
      */
     void changeDeleteButtonVisibility(){
-        int countOfSelectedItems = adapter.selectedItems.size();
+        int countOfSelectedItems = adapter.getSelectedItemsCount();
         if(countOfSelectedItems > 0){
             this.deleteButton.setVisible(true);
         }
         else {
             this.deleteButton.setVisible(false);
         }
+    }
+
+    /**
+     * function to check if edit button is to be displayed
+     *
+     * if selected items count is exactly equal to 1 the button is shown
+     */
+    void changeEditButtonVisibility(){
+        if(adapter.getSelectedItemsCount() == 1){
+            editButton.setVisible(true);
+        }
+        else {
+            editButton.setVisible(false);
+        }
+    }
+
+    /**
+     * function to check if save button is to be displayed
+     *
+     * if any item is selected the button is hidden
+     */
+    void changeSaveButtonVisibility(){
+        if(adapter.getSelectedItemsCount() == 0){
+            saveButton.setVisible(true);
+        }
+        else {
+            saveButton.setVisible(false);
+        }
+    }
+
+    /**
+     * function to check if add button is to be displayed
+     *
+     * if any item is selected the button is hidden
+     */
+    void changeAddButtonVisibility(){
+        if(adapter.getSelectedItemsCount() == 0){
+            addButton.setVisible(true);
+        }
+        else {
+            addButton.setVisible(false);
+        }
+    }
+
+    void changeMenuButtonsVisibility(){
+        changeEditButtonVisibility();
+        changeAddButtonVisibility();
+        changeDeleteButtonVisibility();
+        changeSaveButtonVisibility();
     }
 
     /**
@@ -252,9 +353,13 @@ public class ModifierActivity extends AppCompatActivity {
         //list to maintain position of the selected items
         ArrayList<Integer> selectedItems;
 
-        TimerModifierListAdapter() {
+        ClockTimerList list;
+
+        TimerModifierListAdapter(ClockTimerList list) {
             selectedItems = new ArrayList<>();
             isItemsSelected = false;
+            this.list = new ClockTimerList();
+            this.list.addAll(list);
         }
 
         class TimerViewHolder extends RecyclerView.ViewHolder{
@@ -281,7 +386,7 @@ public class ModifierActivity extends AppCompatActivity {
 
         @Override
         public void onBindViewHolder(@NonNull final TimerViewHolder holder, final int position) {
-            holder.timerText.setText(convertLongToTimeStamp(timerBox.getTimerList().get(position)));
+            holder.timerText.setText(convertLongToTimeStamp(list.get(position)));
             holder.timerText.setTextColor(getResources().getColor(R.color.white_text));
             holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
@@ -300,7 +405,7 @@ public class ModifierActivity extends AppCompatActivity {
                     //flag checked
                     isItemsSelected = selectedItems.size()>0;
 
-                    changeDeleteButtonVisibility();
+                    changeMenuButtonsVisibility();
                     return true;
                 }
             });
@@ -308,7 +413,7 @@ public class ModifierActivity extends AppCompatActivity {
 
         @Override
         public int getItemCount() {
-            return timerBox.getTimerList().size();
+            return list.size();
         }
 
         //the list of selected items is reset and flag reset
@@ -320,6 +425,16 @@ public class ModifierActivity extends AppCompatActivity {
             }
         }
 
+        ClockTimerList getList(){
+            return list;
+        }
+
+        void editTimerAtSelectedPosition(long newTimer){
+            int position = selectedItems.get(0);
+            list.remove(position);
+            list.add(selectedItems.get(0), newTimer);
+        }
+
         //the items selected for processing is deleted
         void deleteSelectedContents(){
             //the selected items are sorted in descending order
@@ -327,11 +442,20 @@ public class ModifierActivity extends AppCompatActivity {
             Collections.reverse(adapter.selectedItems);
             //the selected items are deleted one by one
             for (int position: adapter.selectedItems){
-                timerBox.deleteTimerAtPosition(position);
+                list.remove(position);
             }
             clearSelection();
         }
 
+        int getSelectedItemsCount(){
+            return selectedItems.size();
+        }
+
+        int getSelectedItemPositionForEditing(){
+            if(selectedItems.size() == 1){
+                return selectedItems.get(0);
+            }else throw new IllegalStateException("Multiple items requested for editing");
+        }
 
         private String convertLongToTimeStamp(long timerInSeconds){
             String result = "";

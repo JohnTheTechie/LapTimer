@@ -91,10 +91,8 @@ public class ClockTimerList extends ArrayList<Long> {
 
     public static ClockTimerList prepareDummyList(){
         ClockTimerList list = new ClockTimerList();
-        list.add((long) 7);
-        list.add((long) 6);
-        list.add((long) 5);
-        list.add((long) 4);
+        list.add((long) 30);
+        list.add((long) 15);
         return list;
     }
 }

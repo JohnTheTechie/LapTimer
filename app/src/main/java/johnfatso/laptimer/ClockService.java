@@ -4,6 +4,8 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
+import android.media.RingtoneManager;
+import android.media.SoundPool;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
@@ -145,7 +147,6 @@ public class ClockService extends Service {
                 notificationManager.createNotificationChannel(channel);
             else
                 throw new IllegalStateException("notification manager is null");
-
             this.notificationBuilder = new NotificationCompat.Builder(this, channel.getId())
                     .setSmallIcon(android.R.drawable.alert_dark_frame)
                     .setContentText("00:00")

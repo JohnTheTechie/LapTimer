@@ -74,7 +74,7 @@ public class TimerPersistanceContainer {
         if(timerBoxes.size() == 0){
             TimerBox box = new TimerBox();
             box.setName("dummy");
-            box.setTimerList(ClockTimerList.prepareDummyList());
+            box.setTimerList(ClockTimerList.prepareDummyList(), 10);
             this.insertTimerBox(box);
         }
         Log.v(LOG_TAG,"TimerPersistanceContainer | updated size of the container : "+this.timerBoxes.size());

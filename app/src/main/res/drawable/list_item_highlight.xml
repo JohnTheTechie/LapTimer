@@ -6,7 +6,7 @@
         />
 
     <solid
-        android:color="@color/dark_bg_16"
+        android:color="@color/highlightBG"
         />
 
     <corners

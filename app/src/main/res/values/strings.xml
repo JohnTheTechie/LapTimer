@@ -21,8 +21,11 @@
     <string name="save">Save</string>
     <string name="delete">Delete</string>
     <string name="add">Add</string>
+    <string name="edit">Edit</string>
 
     <!-- modifier activity-->
     <string name="filler_edit_text">Give a name!</string>
     <string name="repetition_counter_label">Repetitions</string>
+    <string name="title_modification">Modify Timer</string>
+    <string name="title_new_timer_definition">New Timer</string>
 </resources>

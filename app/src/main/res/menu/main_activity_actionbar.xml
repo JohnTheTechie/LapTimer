@@ -3,6 +3,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
+        android:id="@+id/clear_main"
+        android:title="Clear"
+        android:icon="@android:drawable/ic_menu_close_clear_cancel"
+        app:showAsAction="always"
+        android:visible="false"
+        />
+
+    <item
         android:id="@+id/addition_main"
         android:title="@string/main_actionbar_addition"
         android:icon="@android:drawable/ic_menu_add"
@@ -15,8 +23,5 @@
         app:showAsAction="ifRoom"
         android:enabled="true"
         android:visible="false"/>
-
-
-
 
 </menu>

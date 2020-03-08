@@ -2,7 +2,9 @@ package johnfatso.laptimer;
 
 import androidx.annotation.NonNull;
 
-public class TimerBox {
+import java.io.Serializable;
+
+public class TimerBox implements Serializable {
 
     private String name;
     private int repetitions;
@@ -66,6 +68,13 @@ public class TimerBox {
 
     public int getRepetitions() {
         return repetitions;
+    }
+
+    public void editTimerAtPosition(int position, long newValue){
+        if(position < timerList.size()){
+            timerList.remove(position);
+            timerList.add(position, newValue);
+        }
     }
 
     public long getTotalDurationOfSingleCycle(){
