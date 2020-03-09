@@ -95,7 +95,7 @@ public class ClockService extends Service {
             else {
                 status = StatusClockService.INITIALIZED;
                 timerListName = intent.getStringExtra(ClockService.CLOCK_TIMER_LIST);
-                timerList = TimerPersistanceContainer.getContainer().getTimerBox(timerListName).getTimerList();
+                timerList = TimerPersistanceContainer.getContainer().getTimerBox(timerListName).getExecutableTimerList();
                 this.prepareHandler();
                 prepareForNotification();
             }
