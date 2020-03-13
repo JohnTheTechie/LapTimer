@@ -2,6 +2,7 @@ package johnfatso.laptimer;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.ComponentName;
@@ -34,6 +35,8 @@ public class ClockActivity extends AppCompatActivity {
 
     private StatusClockActivity status;
 
+    TimerPersistanceContainer container;
+
     private ClockService service;
     private Intent serviceIntent;
 
@@ -43,7 +46,7 @@ public class ClockActivity extends AppCompatActivity {
     final static public String STATUS = "status";
 
     RecyclerView recyclerView;
-    RecyclerView.Adapter adapter;
+    RunningTimerListAdapter adapter;
     RecyclerView.LayoutManager layoutManager;
 
     @Override
@@ -65,6 +68,18 @@ public class ClockActivity extends AppCompatActivity {
             startService(serviceIntent);
         }
         bindToTheService();
+
+        container = TimerPersistanceContainer.getContainer();
+        adapter = new RunningTimerListAdapter(container.getTimerBox(getIntent().getStringExtra(MainActivity.CLOCK_TO_START)).getExecutableTimerList());
+
+        recyclerView = findViewById(R.id.clock_activity_container);
+        recyclerView.setAdapter(adapter);
+
+        layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+
+        this.getWindow().setStatusBarColor(getResources().getColor(R.color.colorPrimaryDark));
+
     }
 
     @Override
@@ -93,6 +108,12 @@ public class ClockActivity extends AppCompatActivity {
 
     public void setControl_button(int control_button) {
         this.control_button.setImageDrawable(getDrawable(control_button));
+    }
+
+    public void setCurrentTimerPosition(int position){
+        adapter.setCurrentPosition(position);
+        adapter.notifyDataSetChanged();
+        layoutManager.scrollToPosition(position);
     }
 
     public void setStatus(StatusClockActivity newStatus){
@@ -173,8 +194,6 @@ public class ClockActivity extends AppCompatActivity {
                 }
             }
         });
-
-        //actionBar = getSupportActionBar();
     }
 
     private void setDefaultValuesToTextHmiElements(){
@@ -208,6 +227,7 @@ public class ClockActivity extends AppCompatActivity {
     class RunningTimerListAdapter extends RecyclerView.Adapter<RunningTimerListAdapter.TimerViewHolder>{
 
         ClockTimerList list;
+        int currentPosition;
 
         class TimerViewHolder extends RecyclerView.ViewHolder{
             boolean isCurrent;
@@ -215,25 +235,66 @@ public class ClockActivity extends AppCompatActivity {
 
             public TimerViewHolder(@NonNull View itemView, TextView timerText) {
                 super(itemView);
+                isCurrent = false;
                 this.timerText = timerText;
             }
+        }
+
+        public RunningTimerListAdapter(ClockTimerList list) {
+            this.list = list;
         }
 
         @NonNull
         @Override
         public TimerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-
-            return null;
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.list_item_clock_activity, parent, false);
+            TextView textView = view.findViewById(R.id.simple_timer_time_string_clock_activity);
+            return new  TimerViewHolder(view, textView);
         }
 
         @Override
         public void onBindViewHolder(@NonNull TimerViewHolder holder, int position) {
+            if(position != currentPosition){
+                holder.itemView.setBackground(getDrawable(R.drawable.clock_simple_list_item_background));
+            }
+            else {
+                holder.itemView.setBackground(getDrawable(R.drawable.clock_simple_list_item_highlighted));
+            }
 
+            holder.timerText.setText(convert_timer_to_time_string(list.get(position)));
         }
 
         @Override
         public int getItemCount() {
-            return 0;
+            return list.size();
+        }
+
+        /**
+         * convert timer long value into String so that it can be shown in Notification and in the activity
+         * @param timer time value to be converted
+         * @return Timer in string form
+         */
+        private String convert_timer_to_time_string(long timer){
+            long minutes, seconds;
+            String seconds_string;
+            if(timer < 3600){
+                minutes = timer/60;
+                seconds = timer%60;
+                if(seconds<10) seconds_string = "0"+seconds;
+                else seconds_string = ""+seconds;
+                return ""+minutes+":"+seconds_string;
+            }
+            else throw new IllegalStateException("timer exceeds an hour");
+        }
+
+        /**
+         * sets the currently running timers position
+         *
+         * @param position new current timer position
+         */
+        void setCurrentPosition(int position){
+            currentPosition = position;
         }
     }
 }

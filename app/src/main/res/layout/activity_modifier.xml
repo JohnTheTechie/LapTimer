@@ -11,11 +11,8 @@
         android:id="@+id/modifier_actionbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:layout_marginStart="4dp"
-        android:layout_marginTop="4dp"
-        android:layout_marginEnd="4dp"
         android:layout_marginBottom="4dp"
-        android:background="@color/colorPrimaryDark"
+        android:background="@color/colorPrimary"
         app:titleTextColor="#ffffff"
         android:elevation="4dp"
         android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
@@ -77,14 +74,15 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/timer_modifier_list"
-        android:layout_width="395dp"
-        android:layout_height="470dp"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
         android:layout_marginStart="4dp"
         android:layout_marginEnd="4dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/divider"
+        app:layout_constraintBottom_toBottomOf="parent"
         tools:listitem="@layout/main_list" />
 
     <View

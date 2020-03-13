@@ -62,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
 
         toolbar = findViewById(R.id.main_actionbar);
         setSupportActionBar(toolbar);
+        this.getWindow().setStatusBarColor(getResources().getColor(R.color.colorPrimaryDark));
     }
 
     @Override

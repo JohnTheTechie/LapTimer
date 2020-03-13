@@ -79,11 +79,12 @@
         app:srcCompat="@android:drawable/ic_media_play" />
 
     <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/clock_activity_container"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="40dp"
         android:background="@android:color/white"
-        tools:listitem="@layout/simple_timer_list_item_layout_clock_activity"
+        tools:listitem="@layout/list_item_clock_activity"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

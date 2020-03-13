@@ -130,6 +130,7 @@ public class ModifierActivity extends AppCompatActivity {
 
         adapter = new TimerModifierListAdapter(timerBox.getTimerList());
         recyclerView.setAdapter(adapter);
+        this.getWindow().setStatusBarColor(getResources().getColor(R.color.colorPrimaryDark));
 
         Log.v(LOG_TAG, "modifier | activity started");
 
@@ -378,8 +379,8 @@ public class ModifierActivity extends AppCompatActivity {
         @Override
         public TimerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
             View view = LayoutInflater.from(parent.getContext())
-                    .inflate(R.layout.main_list, parent, false);
-            TextView textView = view.findViewById(R.id.name_timer_main);
+                    .inflate(R.layout.list_item_clock_activity, parent, false);
+            TextView textView = view.findViewById(R.id.simple_timer_time_string_clock_activity);
             return new TimerViewHolder(view, textView);
         }
 
@@ -394,13 +395,13 @@ public class ModifierActivity extends AppCompatActivity {
                     if(selectedItems.contains(position)){
                         selectedItems.remove(selectedItems.indexOf(position));
                         //the text color is changed to white, if the items was previously selected
-                        holder.timerText.setTextColor(getResources().getColor(R.color.textPrimary));
+                        holder.itemView.setBackground(getDrawable(R.drawable.clock_simple_list_item_background));
 
                     }
                     else {
                         selectedItems.add(position);
                         //the text color is changed color, if the items was previously not selected
-                        holder.timerText.setTextColor(getResources().getColor(R.color.highlighted_text));
+                        holder.itemView.setBackground(getDrawable(R.drawable.clock_simple_list_item_highlighted));
                     }
                     //flag checked
                     isItemsSelected = selectedItems.size()>0;
