@@ -2,6 +2,7 @@ package johnfatso.laptimer;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -11,11 +12,15 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.Objects;
+import java.util.zip.Inflater;
 
 import johnfatso.laptimer.status.StatusClockActivity;
 
@@ -23,7 +28,7 @@ public class ClockActivity extends AppCompatActivity {
 
     private static final String LOG_TAG = "TAG_ACTIVITY";
 
-    private TextView main_timer, next_timer;
+    private TextView main_timer;
     private TextView prev_counter, next_counter;
     private ImageButton control_button;
 
@@ -33,10 +38,13 @@ public class ClockActivity extends AppCompatActivity {
     private Intent serviceIntent;
 
     final String MAIN_CLOCK = "main_clock";
-    final String NEXT_CLOCK = "next_clock";
     final String PREV_COUNTER = "prev_counter";
     final String NEXT_COUNTER = "next_counter";
     final static public String STATUS = "status";
+
+    RecyclerView recyclerView;
+    RecyclerView.Adapter adapter;
+    RecyclerView.LayoutManager layoutManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +55,6 @@ public class ClockActivity extends AppCompatActivity {
         setDefaultValuesToTextHmiElements();
         if(savedInstanceState!=null){
             main_timer.setText(savedInstanceState.getString(MAIN_CLOCK));
-            next_timer.setText(savedInstanceState.getString(NEXT_CLOCK));
             prev_counter.setText(savedInstanceState.getString(PREV_COUNTER));
             next_counter.setText(savedInstanceState.getString(NEXT_COUNTER));
             setStatus((StatusClockActivity) Objects.requireNonNull(savedInstanceState.getSerializable(STATUS)));
@@ -75,9 +82,6 @@ public class ClockActivity extends AppCompatActivity {
         Log.v(LOG_TAG, "");
     }
 
-    public void setNext_timer(String timer){
-        next_timer.setText(timer);
-    }
 
     public void setPrev_counter(String prev_counter) {
         this.prev_counter.setText(prev_counter);
@@ -140,7 +144,6 @@ public class ClockActivity extends AppCompatActivity {
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString(MAIN_CLOCK, main_timer.getText().toString());
-        outState.putString(NEXT_CLOCK, next_timer.getText().toString());
         outState.putString(PREV_COUNTER, prev_counter.getText().toString());
         outState.putString(NEXT_COUNTER, next_counter.getText().toString());
         outState.putSerializable(STATUS, status);
@@ -149,7 +152,6 @@ public class ClockActivity extends AppCompatActivity {
     private void prepareHmiElements(){
         Log.v(LOG_TAG, this.getLocalClassName()+" | Prepare HMI elements called");
         main_timer = findViewById(R.id.clock_main_timer);
-        next_timer = findViewById(R.id.clock_next_timer_clock);
 
         prev_counter = findViewById(R.id.clock_previous_timer_count);
         next_counter = findViewById(R.id.clock_remaining_timer_count);
@@ -177,7 +179,6 @@ public class ClockActivity extends AppCompatActivity {
 
     private void setDefaultValuesToTextHmiElements(){
         main_timer.setText(R.string.default_clock_string);
-        next_timer.setText(R.string.default_clock_string);
 
         prev_counter.setText(R.string.default_counter);
         next_counter.setText(R.string.default_counter);
@@ -202,5 +203,37 @@ public class ClockActivity extends AppCompatActivity {
             bindService(serviceIntent, connection, 0);
         }
 
+    }
+
+    class RunningTimerListAdapter extends RecyclerView.Adapter<RunningTimerListAdapter.TimerViewHolder>{
+
+        ClockTimerList list;
+
+        class TimerViewHolder extends RecyclerView.ViewHolder{
+            boolean isCurrent;
+            TextView timerText;
+
+            public TimerViewHolder(@NonNull View itemView, TextView timerText) {
+                super(itemView);
+                this.timerText = timerText;
+            }
+        }
+
+        @NonNull
+        @Override
+        public TimerViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+
+            return null;
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull TimerViewHolder holder, int position) {
+
+        }
+
+        @Override
+        public int getItemCount() {
+            return 0;
+        }
     }
 }

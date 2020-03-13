@@ -288,10 +288,6 @@ public class ClockService extends Service {
         activity.setNext_counter(remainingTimerCount+"");
         activity.setPrev_counter(expiredTimerCount+"");
 
-        if(timerList.getNextTimer()!=null)
-            activity.setNext_timer(convert_timer_to_time_string(timerList.getNextTimer()));
-        else
-            activity.setNext_timer("--:--");
         Log.v(LOG_TAG, "Activity updated | status : "+status);
     }
 
