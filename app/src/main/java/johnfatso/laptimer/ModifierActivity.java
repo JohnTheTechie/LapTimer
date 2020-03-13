@@ -387,14 +387,14 @@ public class ModifierActivity extends AppCompatActivity {
         @Override
         public void onBindViewHolder(@NonNull final TimerViewHolder holder, final int position) {
             holder.timerText.setText(convertLongToTimeStamp(list.get(position)));
-            holder.timerText.setTextColor(getResources().getColor(R.color.white_text));
+            holder.timerText.setTextColor(getResources().getColor(R.color.textPrimary));
             holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View view) {
                     if(selectedItems.contains(position)){
                         selectedItems.remove(selectedItems.indexOf(position));
                         //the text color is changed to white, if the items was previously selected
-                        holder.timerText.setTextColor(getResources().getColor(R.color.white_text));
+                        holder.timerText.setTextColor(getResources().getColor(R.color.textPrimary));
 
                     }
                     else {
