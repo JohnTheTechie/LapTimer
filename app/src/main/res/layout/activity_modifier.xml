@@ -25,6 +25,7 @@
 
     <EditText
         android:id="@+id/modifier_edit_name"
+        android:autofillHints=""
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -33,6 +34,7 @@
         android:ems="10"
         android:textSize="10pt"
         android:textColor="@color/textPrimary"
+        android:backgroundTint="@color/colorPrimary"
         android:inputType="text"
         android:text="@string/filler_edit_text"
         app:layout_constraintEnd_toEndOf="parent"
@@ -58,15 +60,17 @@
 
     <EditText
         android:id="@+id/repetition_counter_modifier"
+        android:autofillHints=""
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="20dp"
         android:ems="3"
         android:inputType="number"
-        android:text="1"
+        android:text="@string/default_repetition_count"
         android:textAlignment="center"
         android:textColor="@color/textPrimary"
+        android:backgroundTint="@color/colorPrimary"
         app:layout_constraintBottom_toBottomOf="@+id/textView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/textView"
@@ -78,12 +82,13 @@
         android:layout_height="0dp"
         android:layout_marginStart="4dp"
         android:layout_marginEnd="4dp"
+        android:layout_marginTop="4dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/divider"
         app:layout_constraintBottom_toBottomOf="parent"
-        tools:listitem="@layout/main_list" />
+        tools:listitem="@layout/list_item_clock_activity" />
 
     <View
         android:id="@+id/divider"
@@ -93,7 +98,7 @@
         android:layout_marginTop="20dp"
         android:layout_marginEnd="40dp"
         android:background="@color/colorDivider"
-        android:foregroundTint="@color/colorDivider"
+        android:backgroundTint="@color/colorPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/repetition_counter_modifier"

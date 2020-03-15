@@ -4,8 +4,6 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
-import android.media.RingtoneManager;
-import android.media.SoundPool;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;

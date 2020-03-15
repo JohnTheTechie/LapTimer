@@ -4,6 +4,9 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+/**
+ * This class defines a thread for running a controllable stopwatch
+ */
 public class Clock extends Thread {
 
     final private String LOG_TAG = "CLOCK_THREAD";
@@ -17,6 +20,7 @@ public class Clock extends Thread {
     //duration to wait until triggering next tick
     private long next_tick_duration;
     //flag to control clock ticks. To be set true for clock to run
+    //if the clock is set to false when running, the operation shall seize
     private boolean clock_control_flag;
     //handler defined by the parent thread
     private Handler handler;
@@ -38,6 +42,7 @@ public class Clock extends Thread {
 
     @Override
     public void run() {
+        //infinite loop runs until the flag is set to false
         while (this.clock_control_flag){
             Log.v(LOG_TAG,this.getName()+" | flag value:"+clock_control_flag);
             try {
@@ -45,15 +50,20 @@ public class Clock extends Thread {
             }catch (Exception e) {
                 //do nothing
             }
+            //time noted before doing operations
             long ref_time = java.lang.System.currentTimeMillis();
+            //counter decremented
             this.ticks_to_elapse--;
             Log.v(LOG_TAG,this.getName()+" | remaining ticks: "+this.ticks_to_elapse);
+            //if the tick have been exhausted, the clock is completed
+            //hence the flag is unset and completion signal sent
             if(this.ticks_to_elapse <= 0){
                 this.clock_control_flag = false;
                 this.onComplete();
             }
             else
                 this.onTick();
+            //after the operations, time is noted and adjusted time to sleep is set
             long remaining_time = this.base_tick_duration - (java.lang.System.currentTimeMillis() - ref_time);
             this.next_tick_duration = remaining_time<0?0:remaining_time;
         }
@@ -70,20 +80,6 @@ public class Clock extends Thread {
         this.start();
         Log.v(LOG_TAG,this.getName()+" | start triggered");
     }
-
-    /*
-     * start the clock for specified ticks, with tick intervals of tickDuration milliseconds
-     *
-     * @param ticks how many ticks to be generated
-     * @param tickDuration interval between two ticks
-     */
-    /*void startClock(long ticks, long tickDuration){
-        this.ticks_to_elapse = ticks;
-        this.base_tick_duration = tickDuration;
-        this.next_tick_duration = this.base_tick_duration;
-        this.clock_control_flag = true;
-        this.start();
-    }*/
 
     /**
      * stops and resets the clock
@@ -112,6 +108,7 @@ public class Clock extends Thread {
         sendMessageToClient(Clock.CLOCK_MESSAGE_COMPLETE);
         Log.v(LOG_TAG,this.getName()+" | tick triggering as current timer obj completed");
     }
+
 
     private void sendMessageToClient(int messageValue){
         if(handler != null){

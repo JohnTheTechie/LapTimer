@@ -28,4 +28,7 @@
     <string name="repetition_counter_label">Repetitions</string>
     <string name="title_modification">Modify Timer</string>
     <string name="title_new_timer_definition">New Timer</string>
+
+    <!-- default strings-->
+    <string name="default_repetition_count">1</string>
 </resources>

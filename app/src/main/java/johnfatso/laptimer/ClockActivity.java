@@ -29,22 +29,30 @@ public class ClockActivity extends AppCompatActivity {
 
     private static final String LOG_TAG = "TAG_ACTIVITY";
 
+    //hmi elements
     private TextView main_timer;
     private TextView prev_counter, next_counter;
     private ImageButton control_button;
 
+    //status of the timer
     private StatusClockActivity status;
 
+    //variable to read the timers from
     TimerPersistanceContainer container;
 
+    //service to tun the clock
     private ClockService service;
+
+    //service intert to control the service
     private Intent serviceIntent;
 
+    //string constants to saveInstance
     final String MAIN_CLOCK = "main_clock";
     final String PREV_COUNTER = "prev_counter";
     final String NEXT_COUNTER = "next_counter";
     final static public String STATUS = "status";
 
+    //recyclerview variables
     RecyclerView recyclerView;
     RunningTimerListAdapter adapter;
     RecyclerView.LayoutManager layoutManager;
@@ -53,9 +61,15 @@ public class ClockActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_clock);
+
+        //status is set to idle, that is the default initial state, when no operations are running
         status = StatusClockActivity.IDLE;
+
+        //call to prepare the hmi elements and initialize them
         prepareHmiElements();
         setDefaultValuesToTextHmiElements();
+
+        //reading the saved instances from the previous instance
         if(savedInstanceState!=null){
             main_timer.setText(savedInstanceState.getString(MAIN_CLOCK));
             prev_counter.setText(savedInstanceState.getString(PREV_COUNTER));
@@ -63,12 +77,14 @@ public class ClockActivity extends AppCompatActivity {
             setStatus((StatusClockActivity) Objects.requireNonNull(savedInstanceState.getSerializable(STATUS)));
         }
 
+        //service to be created and started only if the clock is not running
         createServiceIntent();
         if(status == StatusClockActivity.IDLE || status == StatusClockActivity.COMPLETED || status == StatusClockActivity.REINITIALIZED)  {
             startService(serviceIntent);
         }
         bindToTheService();
 
+        //timers are read from the container
         container = TimerPersistanceContainer.getContainer();
         adapter = new RunningTimerListAdapter(container.getTimerBox(getIntent().getStringExtra(MainActivity.CLOCK_TO_START)).getExecutableTimerList());
 
@@ -78,12 +94,15 @@ public class ClockActivity extends AppCompatActivity {
         layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
 
+        //status bar color to be changed
         this.getWindow().setStatusBarColor(getResources().getColor(R.color.colorPrimaryDark));
 
     }
 
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
+
+        //if the back button is pressed, the lock is to be stopped, if its already not completed
         if(keyCode == KeyEvent.KEYCODE_BACK){
             if(status != StatusClockActivity.COMPLETED) {
                 service.clock_control_input(ClockControlCommand.STOP);
@@ -92,30 +111,59 @@ public class ClockActivity extends AppCompatActivity {
         return super.onKeyDown(keyCode, event);
     }
 
+    /**
+     * setter for the main clock
+     *
+     * @param timer the current timer value
+     */
     public void setMain_timer(String timer){
         main_timer.setText(timer);
         Log.v(LOG_TAG, "");
     }
 
-
+    /**
+     * setter for counter string indicating the completed timers
+     *
+     * @param prev_counter count of the completed timers
+     */
     public void setPrev_counter(String prev_counter) {
         this.prev_counter.setText(prev_counter);
     }
 
+    /**
+     * setter for the counter indicating the timers to come
+     *
+     * @param next_counter count of the the remaining timers
+     */
     public void setNext_counter(String next_counter) {
         this.next_counter.setText(next_counter);
     }
 
+    /**
+     * setter for the control button
+     *
+     * @param control_button button drawable resource id o be set to the control button
+     */
     public void setControl_button(int control_button) {
         this.control_button.setImageDrawable(getDrawable(control_button));
     }
 
+    /**
+     * setter for the position of the current timer in the execution list
+     *
+     * @param position position of the current timer in the list of timers to be executed
+     */
     public void setCurrentTimerPosition(int position){
         adapter.setCurrentPosition(position);
         adapter.notifyDataSetChanged();
         layoutManager.scrollToPosition(position);
     }
 
+    /**
+     * setter for the status of the activity/clock
+     *
+     * @param newStatus new status as sent by the service
+     */
     public void setStatus(StatusClockActivity newStatus){
         switch (newStatus){
             case IDLE:
