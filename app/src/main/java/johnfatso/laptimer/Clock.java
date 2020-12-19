@@ -4,13 +4,11 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 
+import johnfatso.laptimer.constants.ClockMessage;
+
 public class Clock extends Thread {
 
     final private String LOG_TAG = "CLOCK_THREAD";
-
-    //messages
-    static final int CLOCK_MESSAGE_TICK = 0x01;
-    static final int CLOCK_MESSAGE_COMPLETE = 0x02;
 
     //base interval between two ticks
     private long base_tick_duration;
@@ -71,19 +69,19 @@ public class Clock extends Thread {
         Log.v(LOG_TAG,this.getName()+" | start triggered");
     }
 
-    /*
+    /**
      * start the clock for specified ticks, with tick intervals of tickDuration milliseconds
      *
      * @param ticks how many ticks to be generated
      * @param tickDuration interval between two ticks
      */
-    /*void startClock(long ticks, long tickDuration){
+    void startClock(long ticks, long tickDuration){
         this.ticks_to_elapse = ticks;
         this.base_tick_duration = tickDuration;
         this.next_tick_duration = this.base_tick_duration;
         this.clock_control_flag = true;
         this.start();
-    }*/
+    }
 
     /**
      * stops and resets the clock
@@ -101,7 +99,7 @@ public class Clock extends Thread {
      * called when tick is generated
      */
     private void onTick(){
-        sendMessageToClient(Clock.CLOCK_MESSAGE_TICK);
+        sendMessageToClient(ClockMessage.CLOCK_MESSAGE_TICK);
         Log.v(LOG_TAG,this.getName()+" | tick triggering");
     }
 
@@ -109,13 +107,13 @@ public class Clock extends Thread {
      * called when clock elapsed
      */
     private void onComplete(){
-        sendMessageToClient(Clock.CLOCK_MESSAGE_COMPLETE);
+        sendMessageToClient(ClockMessage.CLOCK_MESSAGE_COMPLETE);
         Log.v(LOG_TAG,this.getName()+" | tick triggering as current timer obj completed");
     }
 
-    private void sendMessageToClient(int messageValue){
+    private void sendMessageToClient(ClockMessage messageValue){
         if(handler != null){
-            Message message = this.handler.obtainMessage(messageValue);
+            Message message = this.handler.obtainMessage(messageValue.id);
             message.sendToTarget();
         }
     }

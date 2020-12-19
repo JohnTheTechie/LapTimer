@@ -1,33 +1,25 @@
 package johnfatso.laptimer;
 
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
-import android.media.RingtoneManager;
-import android.media.SoundPool;
 import android.os.Binder;
-import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
-import android.os.Message;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
-import androidx.core.app.NotificationCompat;
-
+import johnfatso.laptimer.notifier.BasicNotificationController;
+import johnfatso.laptimer.notifier.NotificationControllerInterface;
+import johnfatso.laptimer.notifier.TimerNotificationChannelContainer;
+import johnfatso.laptimer.servicesubsystems.Converters;
+import johnfatso.laptimer.servicesubsystems.TimerControllerMessageReceptor;
+import johnfatso.laptimer.servicesubsystems.TimerMessageHandler;
 import johnfatso.laptimer.status.StatusClockActivity;
 import johnfatso.laptimer.status.StatusClockService;
+import johnfatso.laptimer.notifier.NotificationType;
 
-public class ClockService extends Service {
-
-    enum NotificationType{
-        NewTimerUpdate,
-        ExistingTimerUpdate,
-        CompletionUpdate,
-        MessageUpdate
-    }
+public class ClockService extends Service implements TimerControllerMessageReceptor {
 
     // log tag for logger
     private static final String LOG_TAG = "TAG_SERVICE";
@@ -49,8 +41,7 @@ public class ClockService extends Service {
     //Handler for receiving the inputs from Clock thread
     Handler handler;
 
-    NotificationCompat.Builder notificationBuilder;
-    NotificationManager notificationManager;
+    NotificationControllerInterface notificationController;
 
     ClockActivity activity;
 
@@ -67,7 +58,7 @@ public class ClockService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         Log.v(LOG_TAG, "ClockService | Bind initiated | status : "+status+" | serviceID : "+this);
-        if(status == StatusClockService.RUNNING_ACTIVITY_DISCONNECTED) status = StatusClockService.RUNNING_ACTIVITY_CONNECTED;
+        if(status == StatusClockService.RUNNING_ACTIVITY_DETACHED) status = StatusClockService.RUNNING_ACTIVITY_ATTACHED;
         else if(status == StatusClockService.PAUSED_ACTIVITY_DETACHED) status = StatusClockService.PAUSED_ACTIVITY_ATTACHED;
         return binder;
     }
@@ -75,7 +66,7 @@ public class ClockService extends Service {
     @Override
     public boolean onUnbind(Intent intent) {
         Log.v(LOG_TAG, "ClockService | unbind initiated | status : "+status+" | serviceID : "+this);
-        if(status == StatusClockService.RUNNING_ACTIVITY_CONNECTED) status = StatusClockService.RUNNING_ACTIVITY_DISCONNECTED;
+        if(status == StatusClockService.RUNNING_ACTIVITY_ATTACHED) status = StatusClockService.RUNNING_ACTIVITY_DETACHED;
         else if(status == StatusClockService.PAUSED_ACTIVITY_ATTACHED) status = StatusClockService.PAUSED_ACTIVITY_DETACHED;
         activity = null;
         return super.onUnbind(intent);
@@ -87,7 +78,7 @@ public class ClockService extends Service {
         StatusClockActivity activityStatus = (StatusClockActivity) intent.getSerializableExtra(ClockActivity.STATUS);
         if(activityStatus != null){
             if (activityStatus == StatusClockActivity.RUNNING){
-                status = StatusClockService.RUNNING_ACTIVITY_CONNECTED;
+                status = StatusClockService.RUNNING_ACTIVITY_ATTACHED;
             }
             else if(activityStatus == StatusClockActivity.PAUSED){
                 status = StatusClockService.PAUSED_ACTIVITY_ATTACHED;
@@ -96,7 +87,7 @@ public class ClockService extends Service {
                 status = StatusClockService.INITIALIZED;
                 timerListName = intent.getStringExtra(ClockService.CLOCK_TIMER_LIST);
                 timerList = TimerPersistanceContainer.getContainer().getTimerBox(timerListName).getExecutableTimerList();
-                this.prepareHandler();
+                this.handler = new TimerMessageHandler(Looper.getMainLooper(), this);
                 prepareForNotification();
             }
         }
@@ -111,8 +102,8 @@ public class ClockService extends Service {
         Log.v(LOG_TAG, "ClockService | activity registered | status : "+status+" | serviceID : "+this);
         this.activity = activity;
         switch (status){
-            case RUNNING_ACTIVITY_DISCONNECTED:
-                status = StatusClockService.RUNNING_ACTIVITY_CONNECTED;
+            case RUNNING_ACTIVITY_DETACHED:
+                status = StatusClockService.RUNNING_ACTIVITY_ATTACHED;
                 break;
 
             case PAUSED_ACTIVITY_DETACHED:
@@ -134,25 +125,8 @@ public class ClockService extends Service {
      * prepare the notification channel for passing notification
      */
     void prepareForNotification(){
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O){
-            CharSequence name = "Timer_Notification";
-            String description = "Notification for displaying timer alerts";
-            int importance = NotificationManager.IMPORTANCE_HIGH;
-
-            NotificationChannel channel = new NotificationChannel("timer_channel", name, importance);
-            channel.setDescription(description);
-
-            notificationManager = getSystemService(NotificationManager.class);
-            if(this.notificationManager != null)
-                notificationManager.createNotificationChannel(channel);
-            else
-                throw new IllegalStateException("notification manager is null");
-            this.notificationBuilder = new NotificationCompat.Builder(this, channel.getId())
-                    .setSmallIcon(android.R.drawable.alert_dark_frame)
-                    .setContentText("00:00")
-                    .setOnlyAlertOnce(true)
-                    .setPriority(NotificationCompat.PRIORITY_DEFAULT);
-        }
+        notificationController = new BasicNotificationController().build(getSystemService(NotificationManager.class),
+                TimerNotificationChannelContainer.getInstance().getChannel(), this);
     }
 
     /**
@@ -173,12 +147,12 @@ public class ClockService extends Service {
                 else {
                     throw new IllegalStateException("Start called on a running clock service");
                 }
-                this.status = StatusClockService.RUNNING_ACTIVITY_CONNECTED;
+                this.status = StatusClockService.RUNNING_ACTIVITY_ATTACHED;
                 updateActivityStatus(StatusClockActivity.RUNNING);
                 break;
 
             case PAUSE:
-                if(status == StatusClockService.RUNNING_ACTIVITY_CONNECTED || status == StatusClockService.RUNNING_ACTIVITY_DISCONNECTED){
+                if(status == StatusClockService.RUNNING_ACTIVITY_ATTACHED || status == StatusClockService.RUNNING_ACTIVITY_DETACHED){
                     clock.stopClock();
                     clock = null;
                 }else {
@@ -210,9 +184,6 @@ public class ClockService extends Service {
         currentTimer = timerList.getActiveTimer();
         clock = new Clock(handler);
         clock.startClock(currentTimer);
-        notificationBuilder.setOnlyAlertOnce(false);
-        notificationManager.notify(0x1111, notificationBuilder.build());
-        notificationBuilder.setOnlyAlertOnce(true);
         updateHmiComponents(currentTimer, NotificationType.NewTimerUpdate);
     }
 
@@ -249,38 +220,20 @@ public class ClockService extends Service {
      * @param timer timer duration to be posted
      */
     private void updateHmiComponents(long timer, NotificationType type){
-        String time_string = convert_timer_to_time_string(timer);
-        updateNotification(time_string, type);
-        if(status == StatusClockService.RUNNING_ACTIVITY_CONNECTED && activity != null){
+        String time_string = Converters.timer_to_time_string(timer);
+        //updateNotification(time_string, type);
+        notificationController.update_notification(time_string, type);
+        if(status == StatusClockService.RUNNING_ACTIVITY_ATTACHED && activity != null){
             updateActivityHmiElements();
         }
         Log.v(LOG_TAG, "update posted | status : "+status+" | serviceID : "+this);
     }
 
     /**
-     * change the current timer value in the notification
-     * @param message string to display in the notification
-     */
-    private void updateNotification(String message, NotificationType type){
-        Log.v(LOG_TAG, "Notification | type : "+type+" | message : "+message);
-        notificationBuilder.setContentText(message);
-
-        //check if chime needed
-        if(type != NotificationType.ExistingTimerUpdate){
-            notificationBuilder.setOnlyAlertOnce(false);
-        }else {
-            notificationBuilder.setOnlyAlertOnce(true);
-        }
-
-        notificationManager.notify(0x1111, notificationBuilder.build());
-        notificationBuilder.setOnlyAlertOnce(true);
-    }
-
-    /**
      * update the timers and indicators in the activity
      */
     private void updateActivityHmiElements(){
-        activity.setMain_timer(convert_timer_to_time_string(currentTimer));
+        activity.setMain_timer(Converters.timer_to_time_string(currentTimer));
 
         int remainingTimerCount = timerList.size() - timerList.getPointerPosition()-1;
         int expiredTimerCount = timerList.getPointerPosition();
@@ -289,37 +242,17 @@ public class ClockService extends Service {
         activity.setPrev_counter(expiredTimerCount+"");
 
         if(timerList.getNextTimer()!=null)
-            activity.setNext_timer(convert_timer_to_time_string(timerList.getNextTimer()));
+            activity.setNext_timer(Converters.timer_to_time_string(timerList.getNextTimer()));
         else
             activity.setNext_timer("--:--");
         Log.v(LOG_TAG, "Activity updated | status : "+status);
     }
 
     /**
-     * define handler for receiving communication from clock thread
-     */
-    private void prepareHandler(){
-        this.handler = new Handler(Looper.getMainLooper()){
-            @Override
-            public void handleMessage(@NonNull Message msg) {
-                switch (msg.what){
-                    case Clock.CLOCK_MESSAGE_TICK:
-                        ClockService.this.onTick();
-                        break;
-
-                    case Clock.CLOCK_MESSAGE_COMPLETE:
-                        ClockService.this.onClockComplete();
-                        break;
-
-                }
-            }
-        };
-    }
-
-    /**
      * called when a tick is received
      */
-    private void onTick(){
+    @Override
+    public void onTick(){
         processTick();
         updateHmiComponents(currentTimer, NotificationType.ExistingTimerUpdate);
     }
@@ -327,7 +260,8 @@ public class ClockService extends Service {
     /**
      * called when the one timer is completed
      */
-    private void onClockComplete(){
+    @Override
+    public void onClockComplete(){
         processTick();
         updateHmiComponents(currentTimer, NotificationType.CompletionUpdate);
         timerList.pop();
@@ -337,28 +271,10 @@ public class ClockService extends Service {
         }else {
             updateActivityStatus(StatusClockActivity.COMPLETED);
             this.status = StatusClockService.COMPLETED;
-            updateNotification("Timer Completed", NotificationType.MessageUpdate);
+            notificationController.update_notification("Timer Completed", NotificationType.MessageUpdate);
             resetClock();
         }
         Log.v(LOG_TAG, "service completed processed | status : "+status);
-    }
-
-    /**
-     * convert timer long value into String so that it can be shown in Notification and in the activity
-     * @param timer time value to be converted
-     * @return Timer in string form
-     */
-    private String convert_timer_to_time_string(long timer){
-        long minutes, seconds;
-        String seconds_string;
-        if(timer < 3600){
-            minutes = timer/60;
-            seconds = timer%60;
-            if(seconds<10) seconds_string = "0"+seconds;
-            else seconds_string = ""+seconds;
-            return ""+minutes+":"+seconds_string;
-        }
-        else throw new IllegalStateException("timer exceeds an hour");
     }
 
     /**
