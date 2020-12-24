@@ -1,4 +1,4 @@
-package johnfatso.laptimer;
+package johnfatso.laptimer.timer;
 
 import android.os.Handler;
 import android.os.Message;
@@ -25,7 +25,7 @@ public class Clock extends Thread {
     /**
      * Creates and initiates the clock object
      */
-    Clock(Handler handler) {
+    public Clock(Handler handler) {
         this.base_tick_duration = 1000;
         //first clock tick will be generated after base_tick_duration
         this.next_tick_duration = this.base_tick_duration;
@@ -62,7 +62,7 @@ public class Clock extends Thread {
      *
      * @param ticks how many ticks to be generated
      */
-    void startClock(long ticks){
+    public void startClock(long ticks){
         this.ticks_to_elapse = ticks;
         this.clock_control_flag = true;
         this.start();
@@ -75,7 +75,7 @@ public class Clock extends Thread {
      * @param ticks how many ticks to be generated
      * @param tickDuration interval between two ticks
      */
-    void startClock(long ticks, long tickDuration){
+    public void startClock(long ticks, long tickDuration){
         this.ticks_to_elapse = ticks;
         this.base_tick_duration = tickDuration;
         this.next_tick_duration = this.base_tick_duration;
@@ -86,7 +86,7 @@ public class Clock extends Thread {
     /**
      * stops and resets the clock
      */
-    void stopClock(){
+    public void stopClock(){
         this.clock_control_flag = false;
         this.ticks_to_elapse = 0;
         this.base_tick_duration = 1000;

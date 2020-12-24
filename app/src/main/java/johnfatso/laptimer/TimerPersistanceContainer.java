@@ -19,7 +19,7 @@ public class TimerPersistanceContainer {
     }
 
     @NonNull
-    static TimerPersistanceContainer getContainer(){
+    public static TimerPersistanceContainer getContainer(){
         if(container == null){
                 if(container == null){
                     container = new TimerPersistanceContainer();
