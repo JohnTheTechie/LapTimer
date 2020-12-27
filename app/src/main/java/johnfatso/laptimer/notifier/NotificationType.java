@@ -4,5 +4,7 @@ public enum NotificationType {
     NewTimerUpdate,
     ExistingTimerUpdate,
     CompletionUpdate,
-    MessageUpdate
+    MessageUpdate,
+    RemoveNotification,
+    None
 }

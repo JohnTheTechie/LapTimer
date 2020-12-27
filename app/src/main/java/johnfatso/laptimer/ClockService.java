@@ -7,37 +7,36 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
-import johnfatso.laptimer.notifier.BasicNotificationController;
-import johnfatso.laptimer.notifier.NotificationControllerInterface;
+import johnfatso.laptimer.notifier.BasicNotificationManager;
+import johnfatso.laptimer.notifier.NotificationManagerInterface;
 import johnfatso.laptimer.notifier.TimerNotificationChannelContainer;
-import johnfatso.laptimer.servicesubsystems.BasicTimerController;
-import johnfatso.laptimer.servicesubsystems.BasicTimerStatusController;
-import johnfatso.laptimer.servicesubsystems.Converters;
-import johnfatso.laptimer.servicesubsystems.TimerControllerInterface;
-import johnfatso.laptimer.status.ClockStatusControllerInterface;
-import johnfatso.laptimer.status.StatusActivityAttachmentEnum;
-import johnfatso.laptimer.status.StatusClockActivity;
-import johnfatso.laptimer.status.StatusClockService;
-import johnfatso.laptimer.notifier.NotificationType;
-import johnfatso.laptimer.status.StatusClockServiceEnum;
+import johnfatso.laptimer.servicesubsystems.BasicTimerManager;
+import johnfatso.laptimer.servicesubsystems.BasicTimerStatusManager;
+import johnfatso.laptimer.servicesubsystems.TimerManagerInterface;
+import johnfatso.laptimer.status.ClockStatusManagerInterface;
+import johnfatso.laptimer.status.StatusClockManager;
 
 public class ClockService extends Service {
 
     // log tag for logger
     private static final String LOG_TAG = "TAG_SERVICE";
+    private static final String CLASS_ID = "ClockService";
 
     //string identifier for timer list to register in an intent
     static final String CLOCK_TIMER_LIST = "timerlist";
 
     //current status of the service
-    StatusClockService status;
+    StatusClockManager status;
+
+    //activity active?
+    boolean isActivityActive;
 
     //Control interfaces
-    ClockStatusControllerInterface serviceStatusController;
-    TimerControllerInterface timerController;
-    NotificationControllerInterface notificationController;
+    ClockStatusManagerInterface serviceStatusManager;
+    TimerManagerInterface timerManager;
+    NotificationManagerInterface notificationManager;
 
-    ClockActivity activity;
+    String timerNameID;
 
     //Binder for binding with activity
     private final IBinder binder = new ClockBinder();
@@ -46,110 +45,69 @@ public class ClockService extends Service {
     public void onCreate() {
         super.onCreate();
         Log.v(LOG_TAG, "ClockService | Service created | status : "+status+" | serviceID : "+this);
-        serviceStatusController = new BasicTimerStatusController(timerController, this);
+        serviceStatusManager = new BasicTimerStatusManager(timerManager, this);
+        timerNameID = null;
+        this.isActivityActive = false;
     }
 
     @Override
     public IBinder onBind(Intent intent) {
         Log.v(LOG_TAG, "ClockService | Bind initiated | status : "+status+" | serviceID : "+this);
-        serviceStatusController.setActivityAttachedStatus(true);
-
+        this.isActivityActive = true;
         return binder;
     }
 
     @Override
     public boolean onUnbind(Intent intent) {
         Log.v(LOG_TAG, "ClockService | unbind initiated | status : "+status+" | serviceID : "+this);
-        serviceStatusController.setActivityAttachedStatus(false);
-
-        activity = null;
+        this.isActivityActive = false;
         return super.onUnbind(intent);
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.v(LOG_TAG, "ClockService | service start initiated | status : "+status+" | serviceID : "+this);
-        timerController = new BasicTimerController(intent.getStringExtra(ClockService.CLOCK_TIMER_LIST), null, this);
-        serviceStatusController.mapTimerController(timerController);
-        StatusClockActivity activityStatus = (StatusClockActivity) intent.getSerializableExtra(ClockActivity.STATUS);
-        serviceStatusController.processActivityStatus(activityStatus);
-        if(serviceStatusController.get_timer_status() == StatusClockServiceEnum.INITIALIZED){
-            notificationController = new BasicNotificationController().build(getSystemService(NotificationManager.class),
+        String timerRequested = intent.getStringExtra(ClockService.CLOCK_TIMER_LIST);
+        if (isNewTimerRequested(timerRequested)){
+            if (this.timerNameID != null){
+                this.destroyExpiredControllers();
+                serviceStatusManager = new BasicTimerStatusManager(timerManager, this);
+            }
+            timerManager = new BasicTimerManager(timerRequested, null, this);
+            serviceStatusManager.mapTimerController(timerManager);
+            notificationManager = new BasicNotificationManager().build(getSystemService(NotificationManager.class),
                     TimerNotificationChannelContainer.getInstance().getChannel(), this);
         }
-
+        if (this.timerNameID == null) {
+            startForeground(1254, notificationManager.getNotification("Timer prepared! Get prepared to start!"));
+        }
+        this.timerNameID = timerRequested;
         return super.onStartCommand(intent, flags, startId);
     }
 
-    /**
-     * registers the calling activity to service
-     * @param activity calling activity's ref
-     */
-    public void registerActivity(ClockActivity activity){
-        Log.v(LOG_TAG,
-                "ClockService | activity registered | status : "+status+" | serviceID : "+this);
-        this.activity = activity;
-        this.serviceStatusController.setActivityAttachedStatus(true);
+    @Override
+    public void onDestroy() {
+        Log.v(LOG_TAG, CLASS_ID + "service destroyed");
+        super.onDestroy();
     }
 
-    /**
-     * updates the status of the activity whenever event occurs in service
-     */
-    public void updateActivityStatus(StatusClockActivity statusClockActivity){
-        activity.setStatus(statusClockActivity);
+    private boolean isNewTimerRequested(String timerName){
+        return !timerName.equals(this.timerNameID);
     }
 
-    /**
-     * function to pass clock control commands from activity to service
-     *
-     * @param control_action command constant
-     */
-    public void clock_control_input(ClockControlCommand control_action){
-        serviceStatusController.processActionCommand(control_action);
+    private void destroyExpiredControllers(){
+        serviceStatusManager.destroyController();
+        notificationManager.destroyNotificationManager();
+        timerManager.destroyTimerManager();
     }
 
-    /**
-     * checks condition and update the activity and the notification
-     * @param timer timer duration to be posted
-     */
-    public void updateHmiComponents(long timer,
-                                    NotificationType type,
-                                    ClockTimerList timerList){
-        String time_string = Converters.timer_to_time_string(timer);
-        notificationController.update_notification(time_string, type);
-        if(serviceStatusController.get_activity_status() ==
-                StatusActivityAttachmentEnum.ACTIVITY_ATTACHED && activity != null){
-            updateActivityHmiElements(timer, timerList);
+    public void checkAndDestroy(){
+        if(!this.isActivityActive) {
+            destroyExpiredControllers();
+            Log.v(LOG_TAG, CLASS_ID + "service destroy requested");
+            this.stopForeground(true);
+            this.stopSelf();
         }
-        Log.v(LOG_TAG, "update posted | status : "+status+" | serviceID : "+this);
-    }
-
-    /**
-     * checks condition and update the activity and the notification
-     * @param message message to be posted
-     */
-    public void updateHmiComponents(String message, NotificationType type){
-        notificationController.update_notification(message, type);
-        Log.v(LOG_TAG, "update posted | status : "+status+" | serviceID : "+this);
-    }
-
-    /**
-     * update the timers and indicators in the activity
-     */
-    private void updateActivityHmiElements(long currentTimer, ClockTimerList timerList){
-        activity.setMain_timer(Converters.timer_to_time_string(currentTimer));
-
-        int remainingTimerCount = timerList.size() - timerList.getPointerPosition() - 1;
-        int expiredTimerCount = timerList.getPointerPosition();
-
-        activity.setNext_counter(remainingTimerCount+"");
-        activity.setPrev_counter(expiredTimerCount+"");
-
-        if(timerList.getNextTimer()!=null)
-            activity.setNext_timer(Converters.timer_to_time_string(timerList.getNextTimer()));
-        else
-            activity.setNext_timer("--:--");
-        Log.v(LOG_TAG, "Activity updated | status : "+status);
     }
 
     /**
@@ -157,9 +115,7 @@ public class ClockService extends Service {
      */
     class ClockBinder extends Binder {
         ClockService getService(){
-            Log.v(LOG_TAG,
-                    "ClockService | service retrieved | status : " + status +
-                            " | serviceID : "+ClockService.this);
+            Log.v(LOG_TAG, "ClockService | service retrieved | status : " + status + " | serviceID : "+ClockService.this);
             return ClockService.this;
         }
     }

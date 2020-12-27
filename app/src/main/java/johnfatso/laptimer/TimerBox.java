@@ -1,7 +1,5 @@
 package johnfatso.laptimer;
 
-import androidx.annotation.NonNull;
-
 import java.io.Serializable;
 
 public class TimerBox implements Serializable {

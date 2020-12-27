@@ -65,7 +65,7 @@ public class ClockTimerList extends ArrayList<Long> {
             throw new UnsupportedOperationException("The ClockTimerList is Empty");
         }
         //if the pointer is outside the bounds, return null
-        else if(pointerPosition + 1 == size()){
+        else if(pointerPosition + 1 >= size()){
             return null;
         }
         else {
@@ -91,8 +91,8 @@ public class ClockTimerList extends ArrayList<Long> {
 
     public static ClockTimerList prepareDummyList(){
         ClockTimerList list = new ClockTimerList();
-        list.add((long) 30);
-        list.add((long) 15);
+        list.add((long) 10);
+        list.add((long) 5);
         return list;
     }
 }
