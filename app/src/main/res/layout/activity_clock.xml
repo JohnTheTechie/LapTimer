@@ -92,4 +92,37 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/clock_next_timer_clock"
         app:srcCompat="@android:drawable/ic_media_play" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="@string/activity_clock_finished_timers_label"
+        android:textColor="@color/white_text"
+        app:layout_constraintEnd_toEndOf="@+id/clock_previous_timer_count"
+        app:layout_constraintStart_toStartOf="@+id/clock_previous_timer_count"
+        app:layout_constraintTop_toBottomOf="@+id/clock_previous_timer_count" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="@string/activity_clock_pending_timer_label"
+        android:textColor="@color/white_text"
+        app:layout_constraintEnd_toEndOf="@+id/clock_remaining_timer_count"
+        app:layout_constraintStart_toStartOf="@+id/clock_remaining_timer_count"
+        app:layout_constraintTop_toBottomOf="@+id/clock_remaining_timer_count" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="@string/activity_clock_next_timer_label"
+        android:textColor="@color/white_text"
+        app:layout_constraintEnd_toEndOf="@+id/clock_next_timer_clock"
+        app:layout_constraintStart_toStartOf="@+id/clock_next_timer_clock"
+        app:layout_constraintTop_toBottomOf="@+id/clock_next_timer_clock" />
 </androidx.constraintlayout.widget.ConstraintLayout>

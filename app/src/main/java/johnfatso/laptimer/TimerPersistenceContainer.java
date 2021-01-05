@@ -6,23 +6,23 @@ import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
 
-public class TimerPersistanceContainer {
+public class TimerPersistenceContainer {
     String LOG_TAG = "Timer";
-    private ArrayList<TimerBox> timerBoxes;
+    private final ArrayList<TimerBox> timerBoxes;
 
-    private static TimerPersistanceContainer container=null;
+    private static TimerPersistenceContainer container=null;
 
-    private TimerPersistanceContainer() {
+    private TimerPersistenceContainer() {
         timerBoxes = new ArrayList<>();
         this.prepareDummyData();
         Log.v(LOG_TAG, "TimerPersistanceContainer | created");
     }
 
     @NonNull
-    public static TimerPersistanceContainer getContainer(){
+    public static TimerPersistenceContainer getContainer(){
         if(container == null){
                 if(container == null){
-                    container = new TimerPersistanceContainer();
+                    container = new TimerPersistenceContainer();
                 }
         }
         return container;
@@ -42,7 +42,9 @@ public class TimerPersistanceContainer {
     }
 
     public TimerBox getTimerBox(String name){
-        if(this.getSize()==0) return null;
+        if(this.getSize()==0) {
+            return null;
+        }
         else {
             for (TimerBox box: timerBoxes){
                 if (box.getName().equals(name)) return box;

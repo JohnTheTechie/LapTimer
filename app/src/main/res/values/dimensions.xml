@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="timer_customization_list_item_base_frame_margin">2dp</dimen>
+
+    <!-- leaf list item dimensions -->
+    <dimen name="timer_customization_list_item_leaf_height">60dp</dimen>
+    <dimen name="leaf_repetition_decrement_button_width">20dp</dimen>
+    <dimen name="leaf_repetition_increment_button_width">20dp</dimen>
+    <dimen name="leaf_repetition_count_text_width">60dp</dimen>
+    <dimen name="leaf_delete_button_dimension">50dp</dimen>
+    <dimen name="leaf_delete_button_margin">15dp</dimen>
+    <dimen name="leaf_timer_text_view_font_size">12pt</dimen>
+    <dimen name="leaf_timer_text_padding_start">20dp</dimen>
+    <dimen name="leaf_timer_text_padding_end">20dp</dimen>
+    <dimen name="leaf_repetition_count_text_font_size">12pt</dimen>
+
+    <!-- subtree list item dimension -->
+    <dimen name="timer_customization_list_item_recycler_add_button_frame_height">80dp</dimen>
+    <dimen name="timer_customization_list_item_recycler_add_button_height">60dp</dimen>
+    <dimen name="timer_customization_list_item_repetition_controls_container_frame_height">80dp</dimen>
+    <dimen name="timer_customization_list_item_delete_button_frame_height">80dp</dimen>
+
+    <!-- drawable dimensions -->
+    <dimen name="color_coded_bg_stroke_width">2dp</dimen>
+
+    <!-- coded bg dimensions-->
+    <dimen name="coded_bg_stroke_width">4dp</dimen>
+    <dimen name="coded_bg_shape_radius">2dp</dimen>
+
+    <!-- main activity -->
+    <!-- grid layout dimensions -->
+    <dimen name="main_activity_grid_list_item_margin_vertical">4dp</dimen>
+    <dimen name="main_activity_grid_list_item_margin_horizontal">8dp</dimen>
+
+</resources>

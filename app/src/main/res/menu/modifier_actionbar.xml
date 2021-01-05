@@ -14,13 +14,15 @@
         android:id="@+id/save_modifier"
         android:title="@string/save"
         android:icon="@android:drawable/ic_menu_save"
-        app:showAsAction="always"/>
+        app:showAsAction="always"
+        android:visible="true"/>
 
     <item
         android:id="@+id/addition_modifier"
         android:title="@string/add"
         android:icon="@android:drawable/ic_menu_add"
-        app:showAsAction="always"/>
+        app:showAsAction="always"
+        android:visible="false"/>
 
     <item
         android:id="@+id/delete_modifier"

@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 public class TimerBox implements Serializable {
 
+    private long identifier;
     private String name;
     private int repetitions;
     private ClockTimerList timerList;
@@ -15,6 +16,7 @@ public class TimerBox implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+
     }
 
     public void setTimerList(ClockTimerList timerList) {
@@ -46,6 +48,14 @@ public class TimerBox implements Serializable {
             }
         }
         return list;
+    }
+
+    public long getIdentifier() {
+        return identifier;
+    }
+
+    public void setIdentifier(long identifier) {
+        this.identifier = identifier;
     }
 
     public void updateTimerBox(TimerBox box){

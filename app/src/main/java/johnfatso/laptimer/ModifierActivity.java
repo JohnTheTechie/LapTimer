@@ -57,7 +57,7 @@ public class ModifierActivity extends AppCompatActivity {
     //object to store the values selected by the user
     TimerBox timerBox;
     //Object to store the timers
-    TimerPersistanceContainer timerPersistanceContainer;
+    TimerPersistenceContainer timerPersistenceContainer;
 
     RecyclerView recyclerView;
     TimerModifierListAdapter adapter;
@@ -92,7 +92,7 @@ public class ModifierActivity extends AppCompatActivity {
         actionBar = findViewById(R.id.modifier_actionbar);
         setSupportActionBar(actionBar);
 
-        timerPersistanceContainer = TimerPersistanceContainer.getContainer();
+        timerPersistenceContainer = TimerPersistenceContainer.getContainer();
 
         Intent receivedIntent = getIntent();
         int request_type = receivedIntent.getIntExtra(REQUEST_IDSTRING, 0);
@@ -107,7 +107,7 @@ public class ModifierActivity extends AppCompatActivity {
                 break;
 
             case MODIFY_TIMER:
-                timerBox = timerPersistanceContainer.getTimerBox(receivedIntent.getStringExtra(BOX_IDSTRING));
+                timerBox = timerPersistenceContainer.getTimerBox(receivedIntent.getStringExtra(BOX_IDSTRING));
                 name_label.setText(timerBox.getName());
                 repetition_counter.setText(String.format(Integer.toString(timerBox.getRepetitions())));
                 setTitle(R.string.title_modification);
@@ -148,7 +148,7 @@ public class ModifierActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+    public boolean onOptionsItemSelected(@NonNull final MenuItem item) {
         switch (item.getItemId()){
             case R.id.addition_modifier:
                 this.checkAndResetSelection();
@@ -175,7 +175,7 @@ public class ModifierActivity extends AppCompatActivity {
                     timerBox.setName(name);
                     timerBox.setRepetitions(repetition);
                     timerBox.setTimerList(adapter.getList());
-                    timerPersistanceContainer.insertTimerBox(timerBox);
+                    timerPersistenceContainer.insertTimerBox(timerBox);
                     setResult(RESULT_OK, resultIntent);
                     finish();
                 }else
@@ -382,7 +382,6 @@ public class ModifierActivity extends AppCompatActivity {
             TextView textView = view.findViewById(R.id.name_timer_main);
             return new TimerViewHolder(view, textView);
         }
-
 
         @Override
         public void onBindViewHolder(@NonNull final TimerViewHolder holder, final int position) {

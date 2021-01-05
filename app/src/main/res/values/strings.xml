@@ -28,4 +28,25 @@
     <string name="repetition_counter_label">Repetitions</string>
     <string name="title_modification">Modify Timer</string>
     <string name="title_new_timer_definition">New Timer</string>
+
+    <!-- Timer customization -->
+    <string name="default_timer_name">New Timer Sequence</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <!-- ======================================================================================= -->
+    <!--clock activity layout-->
+    <string name="activity_clock_finished_timers_label">Finished</string>
+    <string name="activity_clock_pending_timer_label">Pending</string>
+    <string name="activity_clock_next_timer_label">Next Timer</string>
+
+
+    <!-- ======================================================================================= -->
+    <!--Leaf list layout-->
+    <!-- Button descriptors -->
+    <string name="leaf_repetition_decrement_button_description">Decrease the repetition of the timer</string>
+    <string name="leaf_repetition_increment_button_description">Increase the repetition of the timer</string>
+    <string name="leaf_delete_button_description">delete the timer</string>
+    <!-- default string -->
+    <string name="leaf_timer_text_view_default_text">00:00</string>
+    <string name="leaf_repetition_count_text_default_text">1</string>
 </resources>

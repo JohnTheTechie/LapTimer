@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="@dimen/coded_bg_shape_radius"/>
+            <solid android:color="@color/coded_border_bg"/>
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <stroke android:color="@color/coded_border_red" android:width="@dimen/color_coded_bg_stroke_width"/>
+            <corners android:radius="@dimen/coded_bg_stroke_width"/>
+        </shape>
+    </item>
+</layer-list>

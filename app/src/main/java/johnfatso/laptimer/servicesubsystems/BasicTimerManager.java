@@ -6,12 +6,11 @@ import android.util.Log;
 
 import johnfatso.laptimer.controller.ClockTimerEvent;
 import johnfatso.laptimer.controller.TimerEventObservable;
-import johnfatso.laptimer.status.StatusClockManager;
 import johnfatso.laptimer.timer.Clock;
 import johnfatso.laptimer.ClockService;
 import johnfatso.laptimer.ClockTimerList;
-import johnfatso.laptimer.TimerPersistanceContainer;
 import johnfatso.laptimer.notifier.NotificationType;
+import johnfatso.laptimer.timerdbms.TimerSequenceCollection;
 import johnfatso.laptimer.viewmodel.TimerActivityTimerStateContainer;
 import johnfatso.laptimer.viewmodel.TimerActivityViewModelObservable;
 
@@ -47,7 +46,7 @@ public class BasicTimerManager implements TimerManagerInterface, TimerController
 
     @Override
     public void initializeClock() {
-        timerList = TimerPersistanceContainer.getContainer().getTimerBox(timerListName).getExecutableTimerList();
+        timerList = TimerSequenceCollection.getContainer().getSequenceContainer(timerListName).getExecutableList();
         this.handler = new TimerMessageHandler(Looper.getMainLooper(), this);
         this.currentTimer = timerList.getActiveTimer();
         Log.v(LOG_TAG, CLASS_ID + " | Timer manager initialized");
@@ -137,7 +136,7 @@ public class BasicTimerManager implements TimerManagerInterface, TimerController
             startClock();
         }else {
             Log.v(LOG_TAG, CLASS_ID + " | series completed | to be reset");
-            this.updateStateOnComplete(NotificationType.ExistingTimerUpdate);
+            this.updateStateOnComplete();
             timerList.resetQueue();
             currentTimer = timerList.getActiveTimer();
             Log.v(LOG_TAG, CLASS_ID + " | clock reset");
@@ -162,11 +161,11 @@ public class BasicTimerManager implements TimerManagerInterface, TimerController
         this.modelObservable.setStateChanged(true);
     }
 
-    private void updateStateOnComplete(NotificationType notificationType){
+    private void updateStateOnComplete(){
         TimerActivityTimerStateContainer container = this.modelObservable.getState();
         container.setRemainingTimeInSeconds(this.currentTimer);
         container.setNextTimerInQueue(this.timerList.getNextTimer()==null?-1:this.timerList.getNextTimer());
-        container.setNotificationType(notificationType);
+        container.setNotificationType(NotificationType.ExistingTimerUpdate);
         this.modelObservable.setNewState(container);
         this.modelObservable.setStateChanged(true);
     }
